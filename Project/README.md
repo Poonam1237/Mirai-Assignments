@@ -37,6 +37,4 @@ Lecture-Notes-to-Flashcards/
 ├── README.md
 ├── ARCHITECTURE.md
 ├── .gitignore
-│
-└── .streamlit/
-    └── config.toml
+
