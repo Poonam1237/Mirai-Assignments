@@ -37,4 +37,7 @@ Lecture-Notes-to-Flashcards/
 ├── README.md
 ├── ARCHITECTURE.md
 ├── .gitignore
+```
+## Live Demo
+👉 [Try the Live App](https://poonam-voice-notes-flashcards.streamlit.app/)
 
