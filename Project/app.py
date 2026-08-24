@@ -13,7 +13,9 @@ st.set_page_config(
 )
 
 st.title("🎙️ Voice Notes to Flashcards")
-st.caption("Turn lecture recordings or notes into flashcards and quizzes with Gemini AI.")
+st.caption(
+    "Turn lecture recordings or notes into flashcards and quizzes with Gemini AI."
+)
 
 if "transcript" not in st.session_state:
     st.session_state.transcript = ""
@@ -44,7 +46,10 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+model = os.getenv(
+    "GEMINI_MODEL",
+    "gemini-2.5-flash"
+)
 
 
 def parse_response(text):
@@ -102,7 +107,7 @@ Return only valid JSON in this structure:
 }
 
 Generate exactly the requested number of flashcards.
-Generate at least 5 quiz questions.
+Generate exactly 5 quiz questions.
 """
 
     user_prompt = f"""
@@ -115,7 +120,6 @@ Create study material based on the following lecture.
 
 The student is preparing for {learning_goal.lower()}.
 Make the material appropriate for a {difficulty.lower()} level.
-
 """
 
     try:
@@ -161,20 +165,33 @@ Make the material appropriate for a {difficulty.lower()} level.
             if not isinstance(card, dict):
                 continue
 
-            question = str(card.get("question", "")).strip()
-            answer = str(card.get("answer", "")).strip()
+            question = str(
+                card.get("question", "")
+            ).strip()
+
+            answer = str(
+                card.get("answer", "")
+            ).strip()
 
             if question and answer:
-                flashcards.append({
-                    "question": question,
-                    "answer": answer,
-                    "difficulty": str(
-                        card.get("difficulty", difficulty)
-                    ),
-                    "topic": str(
-                        card.get("topic", "General")
-                    )
-                })
+                flashcards.append(
+                    {
+                        "question": question,
+                        "answer": answer,
+                        "difficulty": str(
+                            card.get(
+                                "difficulty",
+                                difficulty
+                            )
+                        ),
+                        "topic": str(
+                            card.get(
+                                "topic",
+                                "General"
+                            )
+                        )
+                    }
+                )
 
         quiz = []
 
@@ -191,40 +208,74 @@ Make the material appropriate for a {difficulty.lower()} level.
                 "answer"
             ]
 
-            if all(str(item.get(field, "")).strip() for field in fields):
-                answer = str(item["answer"]).strip().upper()
+            if all(
+                str(item.get(field, "")).strip()
+                for field in fields
+            ):
+                answer = str(
+                    item["answer"]
+                ).strip().upper()
 
                 if answer in ["A", "B", "C", "D"]:
-                    quiz.append({
-                        "question": str(item["question"]).strip(),
-                        "option_a": str(item["option_a"]).strip(),
-                        "option_b": str(item["option_b"]).strip(),
-                        "option_c": str(item["option_c"]).strip(),
-                        "option_d": str(item["option_d"]).strip(),
-                        "answer": answer
-                    })
+                    quiz.append(
+                        {
+                            "question": str(
+                                item["question"]
+                            ).strip(),
+                            "option_a": str(
+                                item["option_a"]
+                            ).strip(),
+                            "option_b": str(
+                                item["option_b"]
+                            ).strip(),
+                            "option_c": str(
+                                item["option_c"]
+                            ).strip(),
+                            "option_d": str(
+                                item["option_d"]
+                            ).strip(),
+                            "answer": answer
+                        }
+                    )
 
-        result["flashcards"] = flashcards[:number_of_cards]
-        result["quiz"] = quiz
+        result["flashcards"] = flashcards[
+            :number_of_cards
+        ]
+
+        result["quiz"] = quiz[:5]
 
         return result
 
     except json.JSONDecodeError:
-        raise ValueError("Gemini returned an invalid response. Please try again.")
+        raise ValueError(
+            "Gemini returned an invalid response. Please try again."
+        )
+
     except Exception as e:
-        raise RuntimeError(f"Gemini request failed: {e}")
+        raise RuntimeError(
+            f"Gemini request failed: {e}"
+        )
 
 
 def save_result(result, source):
-    st.session_state.transcript = result.get("transcript", "")
+    st.session_state.transcript = result.get(
+        "transcript",
+        ""
+    )
 
-    cards = pd.DataFrame(result.get("flashcards", []))
+    cards = pd.DataFrame(
+        result.get("flashcards", [])
+    )
 
     if not cards.empty:
         cards["source"] = source
 
     st.session_state.flashcards = cards
-    st.session_state.quiz = pd.DataFrame(result.get("quiz", []))
+
+    st.session_state.quiz = pd.DataFrame(
+        result.get("quiz", [])
+    )
+
     st.session_state.score = None
     st.session_state.source = source
 
@@ -261,23 +312,32 @@ with st.sidebar:
     )
 
     st.divider()
-    st.caption(f"Model: {model}")
+
+    st.caption(
+        f"Model: {model}"
+    )
 
 
 audio_tab, notes_tab = st.tabs(
-    ["🎙️ Record Lecture", "📝 Paste Notes"]
+    [
+        "🎙️ Record Lecture",
+        "📝 Paste Notes"
+    ]
 )
+
 
 with audio_tab:
     st.subheader("Record your lecture")
 
     st.write(
-        "Record a lecture explanation or revision note and "
-        "turn it into structured study material."
+        "Record a lecture explanation or revision note "
+        "and turn it into structured study material."
     )
 
     with st.form("audio_form"):
-        audio = st.audio_input("Lecture recording")
+        audio = st.audio_input(
+            "Lecture recording"
+        )
 
         generate_audio = st.form_submit_button(
             "Generate Study Material",
@@ -287,10 +347,14 @@ with audio_tab:
 
     if generate_audio:
         if audio is None:
-            st.warning("Please record a lecture first.")
+            st.warning(
+                "Please record a lecture first."
+            )
         else:
             try:
-                with st.spinner("Processing your lecture..."):
+                with st.spinner(
+                    "Processing your lecture..."
+                ):
                     result = generate_material(
                         audio.getvalue(),
                         subject,
@@ -305,7 +369,9 @@ with audio_tab:
                         "Lecture recording"
                     )
 
-                st.success("Study material generated.")
+                st.success(
+                    "Study material generated."
+                )
 
             except Exception as e:
                 st.error(str(e))
@@ -329,10 +395,14 @@ with notes_tab:
 
     if generate_notes:
         if len(notes.strip()) < 30:
-            st.warning("Please enter at least 30 characters.")
+            st.warning(
+                "Please enter at least 30 characters."
+            )
         else:
             try:
-                with st.spinner("Creating your study material..."):
+                with st.spinner(
+                    "Creating your study material..."
+                ):
                     result = generate_material(
                         notes,
                         subject,
@@ -346,7 +416,9 @@ with notes_tab:
                         "Pasted notes"
                     )
 
-                st.success("Study material generated.")
+                st.success(
+                    "Study material generated."
+                )
 
             except Exception as e:
                 st.error(str(e))
@@ -371,14 +443,22 @@ col2.metric(
     delta=f"{len(quiz)} available"
 )
 
-word_count = len(
-    st.session_state.transcript.split()
-) if st.session_state.transcript else 0
+word_count = (
+    len(
+        st.session_state.transcript.split()
+    )
+    if st.session_state.transcript
+    else 0
+)
 
 col3.metric(
     "Transcript Words",
     word_count,
-    delta="Processed" if word_count else "Waiting"
+    delta=(
+        "Processed"
+        if word_count
+        else "Waiting"
+    )
 )
 
 if st.session_state.score is None:
@@ -397,7 +477,10 @@ else:
 
 if st.session_state.transcript:
     st.divider()
-    st.subheader("📝 Lecture Transcript")
+
+    st.subheader(
+        "📝 Lecture Transcript"
+    )
 
     with st.expander(
         "View transcript",
@@ -410,7 +493,10 @@ if st.session_state.transcript:
 
 if not cards.empty:
     st.divider()
-    st.subheader("🧠 Flashcards")
+
+    st.subheader(
+        "🧠 Flashcards"
+    )
 
     edited_cards = st.data_editor(
         cards,
@@ -428,7 +514,11 @@ if not cards.empty:
             ),
             "difficulty": st.column_config.SelectboxColumn(
                 "Difficulty",
-                options=["Easy", "Medium", "Hard"]
+                options=[
+                    "Easy",
+                    "Medium",
+                    "Hard"
+                ]
             ),
             "topic": st.column_config.TextColumn(
                 "Topic"
@@ -450,7 +540,9 @@ if not cards.empty:
     )
 
     if "difficulty" in edited_cards.columns:
-        st.subheader("📊 Flashcard Difficulty")
+        st.subheader(
+            "📊 Flashcard Difficulty"
+        )
 
         difficulty_data = (
             edited_cards["difficulty"]
@@ -482,13 +574,15 @@ if not cards.empty:
 
 if not quiz.empty:
     st.divider()
-    st.subheader("🎯 Quiz")
+
+    st.subheader(
+        "🎯 Quiz"
+    )
 
     with st.form("quiz_form"):
         answers = {}
 
         for index, row in quiz.iterrows():
-
             st.markdown(
                 f"**{index + 1}. {row['question']}**"
             )
@@ -514,11 +608,9 @@ if not quiz.empty:
         )
 
     if submit_quiz:
-
         correct = 0
 
         for index, row in quiz.iterrows():
-
             selected = answers[index][0]
 
             if selected == row["answer"]:
@@ -535,10 +627,14 @@ if not quiz.empty:
 
         if st.session_state.score >= 80:
             st.balloons()
-            st.success("Excellent work!")
+            st.success(
+                "Excellent work!"
+            )
 
         elif st.session_state.score >= 60:
-            st.info("Good job. Review the missed concepts.")
+            st.info(
+                "Good job. Review the missed concepts."
+            )
 
         else:
             st.warning(
@@ -550,5 +646,6 @@ if st.session_state.source:
     st.divider()
 
     st.caption(
-        f"Current study session: {st.session_state.source}"
+        f"Current study session: "
+        f"{st.session_state.source}"
     )
